@@ -58,9 +58,3 @@ Takes the base64 ciphertext as input and queries the server repeatedly with modi
    ```
 
 The attacker will recover and print the original plaintext.
-
----
-
-## Note
-
-This code is intentionally vulnerable and is written for educational purposes only. All testing is done in a local controlled environment. Do not use against any real system.
