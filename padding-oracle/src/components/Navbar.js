@@ -7,7 +7,7 @@ export default function Navbar() {
         
         <Link href="/">
           <span className="text-lg font-semibold text-[#111827] tracking-tight">
-            CryptoSim
+            Padding Oracle Attack
           </span>
         </Link>
 
