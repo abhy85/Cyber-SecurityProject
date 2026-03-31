@@ -1,49 +1,53 @@
 import { splitBlocks } from "../lib/blocks";
 
 export default function BlockVisualizer({ ciphertext, current, valid }) {
-  const blocks = splitBlocks(ciphertext);
+    const blocks = splitBlocks(ciphertext);
 
-  return (
-    <div className="bg-white border border-[#e5e7eb] rounded-xl p-5">
-      <div className="text-sm text-gray-600 mb-4">
-        Cipher Blocks
-      </div>
+    return (
+        <div className="bg-white border border-[#e5e7eb] rounded-xl p-5">
+            <div className="text-xm text-gray-800 mb-2 pb-2">
+                Cipher Text:- {ciphertext}
+            </div>
+            <div className="text-sm text-gray-600 mb-4">
+                Cipher Blocks
+            </div>
 
-      {blocks.map((block, bi) => (
-        <div key={bi} className="mb-5">
+            {blocks.map((block, bi) => (
+                <div key={bi} className="mb-5">
 
-          <div className="text-xs text-gray-400 mb-2">
-            Block {bi}
-          </div>
 
-          <div className="grid grid-cols-16 gap-1">
-            {block.map((byte, i) => {
-              const isActive =
-                current?.block === bi && current?.byte === i;
+                    <div className="text-xs text-gray-600 mb-2">
+                        Block {bi}
+                    </div>
 
-              const isRecovered = valid.some(
-                (v) => v.block === bi && v.byte === i
-              );
+                    <div className="grid grid-cols-16 gap-1">
+                        {block.map((byte, i) => {
+                            const isActive =
+                                current?.block === bi && current?.byte === i;
 
-              return (
-                <div
-                  key={i}
-                  className={`
+                            const isRecovered = valid.some(
+                                (v) => v.block === bi && v.byte === i
+                            );
+
+                            return (
+                                <div
+                                    key={i}
+                                    className={`
                   h-8 flex items-center justify-center rounded-md text-[11px] font-mono border
                   ${isActive
-                      ? "bg-black text-white scale-110"
-                      : isRecovered
-                        ? "bg-green-200 text-green-900 border-green-300"
-                        : "bg-[#f9fafb] text-gray-500 border-[#e5e7eb]"}
+                                            ? "bg-black text-white scale-110"
+                                            : isRecovered
+                                                ? "bg-green-200 text-green-900 border-green-300"
+                                                : "bg-[#f9fafb] text-gray-600 border-[#e5e7eb]"}
                 `}
-                >
-                  {byte.toString(16).padStart(2, "0")}
+                                >
+                                    {byte.toString(16).padStart(2, "0")}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-              );
-            })}
-          </div>
+            ))}
         </div>
-      ))}
-    </div>
-  );
+    );
 }

