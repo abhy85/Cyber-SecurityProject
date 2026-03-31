@@ -51,16 +51,17 @@ export default function AttackPage() {
       target.ciphertext,
       oracle,
       (log) => {
-        setCurrent(log);
+        setCurrent({ ...log });
+
 
         if (log.progress !== undefined) {
           setProgress(log.progress);
         }
 
         if (log.status === "valid") {
-          setValid((v) => [...v, log]);
+          setValid((v) => [...v, {...log}]);
         } else if (!fastMode) {
-          setInvalid((q) => [...q.slice(-30), log]);
+          setInvalid((q) => [...q.slice(-30), {...log}]);
         }
 
         if (log.recoveredText) {
@@ -120,11 +121,11 @@ export default function AttackPage() {
             />
 
             <div className="bg-white border rounded-xl p-4">
-              <div className="text-sm text-[#6b7280] mb-2">
+              <div className="text-sm text-[#4e5158] mb-2">
                 Recovered Plaintext
               </div>
-              <div className="font-mono text-sm break-all">
-                {plaintext || "..."}
+              <div className="font-mono text-[#73767c] text-sm break-all">
+                {String(plaintext) || "..."}
               </div>
             </div>
           </div>
