@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import ChatBubble from "../components/ChatBubble";
 import MessageInput from "../components/MessageInput";
@@ -8,13 +8,41 @@ export default function Client() {
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Fetch existing messages on load
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const res = await fetch("/api/messages");
+      const data = await res.json();
+
+      // Decrypt messages locally
+      const formatted = [];
+
+      data.forEach((m) => {
+        try {
+          const userText = decrypt(m.ciphertext);
+          formatted.push({ text: userText, user: true });
+
+          if (m.responseCipher) {
+            const serverText = decrypt(m.responseCipher);
+            formatted.push({ text: serverText, user: false });
+          }
+        } catch (e) {
+          // skip corrupted messages
+        }
+      });
+
+      setChat(formatted);
+    };
+
+    fetchMessages();
+  }, []);
+
   const sendMessage = async (text) => {
     if (!text) return;
 
     const cipher = encrypt(text);
 
     setChat((c) => [...c, { text, user: true }]);
-
     setLoading(true);
 
     const res = await fetch("/api/send-message", {
