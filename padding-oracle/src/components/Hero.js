@@ -5,7 +5,7 @@ export default function Hero() {
     <section className="relative py-28 md:py-36 bg-[#f7f5f2] overflow-hidden">
       
       {/* subtle grid background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e7e5e4_1px,transparent_1px),linear-gradient(to_bottom,#e7e5e4_1px,transparent_1px)] bg-[size:40px_40px] opacity-40" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e7e5e4_1px,transparent_1px),linear-gradient(to_bottom,#e7e5e4_1px,transparent_1px)] bg-size-[40px_40px] opacity-40" />
 
       <div className="relative max-w-4xl mx-auto px-6 text-center">
         
