@@ -1,24 +1,30 @@
 import { useState } from "react";
 
+
 export default function MessageInput({ onSend }) {
   const [text, setText] = useState("");
 
   return (
-    <div className="flex gap-2 p-2">
-      <input
-        className="flex-1 p-2 rounded bg-slate-800"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      <button
-        onClick={() => {
-          onSend(text);
-          setText("");
-        }}
-        className="bg-indigo-500 px-4 rounded"
-      >
-        Send
-      </button>
+    <div className="border-t border-[#e5e7eb] bg-[#f7f5f2] p-4">
+      <div className="max-w-4xl mx-auto flex gap-3 items-center bg-white border border-[#e5e7eb] rounded-xl px-3 py-2 shadow-sm">
+        
+        <input
+          className="flex-1 bg-transparent outline-none text-sm text-[#111827] placeholder:text-[#9ca3af]"
+          placeholder="Type a message..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+
+        <button
+          onClick={() => {
+            onSend(text);
+            setText("");
+          }}
+          className="bg-[#4f46e5] hover:bg-[#4338ca] text-white px-4 py-2 rounded-lg text-sm transition"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }

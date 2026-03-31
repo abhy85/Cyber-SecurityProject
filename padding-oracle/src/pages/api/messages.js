@@ -1,5 +1,6 @@
-let messages = [];
+import { readDB } from "../../lib/db";
 
 export default function handler(req, res) {
-  res.json(messages);
+  const data = readDB();
+  res.json(data);
 }

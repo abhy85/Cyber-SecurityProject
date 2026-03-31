@@ -2,14 +2,17 @@ import { motion } from "framer-motion";
 
 export default function ChatBubble({ text, isUser }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: isUser ? 50 : -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      className={`p-3 m-2 rounded-lg max-w-xs ${
-        isUser ? "bg-indigo-500 ml-auto" : "bg-slate-700"
-      }`}
-    >
-      {text}
-    </motion.div>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`
+          max-w-[65%] px-4 py-3 rounded-2xl text-sm leading-relaxed
+          ${isUser 
+            ? "bg-[#4f46e5] text-white rounded-br-sm" 
+            : "bg-white border border-[#e5e7eb] text-[#111827] rounded-bl-sm shadow-sm"}
+        `}
+      >
+        {text}
+      </div>
+    </div>
   );
 }

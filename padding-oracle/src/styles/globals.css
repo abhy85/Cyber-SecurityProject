@@ -1,4 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
+
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #f7f5f2;
+  color: #1f2937;
+}
+
+/* Scrollbar subtle */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 10px;
+}
 
 :root {
   --background: #ffffff;

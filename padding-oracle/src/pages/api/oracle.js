@@ -1,8 +1,23 @@
+import { rawDecrypt, isValidPadding } from "../../lib/crypto";
+
+let vulnerable = true;
+
 export default function handler(req, res) {
   const { ciphertext } = req.body;
 
-  // simulate padding validity randomly
-  const valid = Math.random() > 0.7;
+  try {
+    const decrypted = rawDecrypt(ciphertext);
 
-  res.json({ status: valid ? "valid" : "invalid" });
+    if (!vulnerable) {
+      return res.json({ status: "valid" }); // constant response
+    }
+
+    const valid = isValidPadding(decrypted);
+
+    res.json({
+      status: valid ? "valid" : "invalid",
+    });
+  } catch {
+    res.json({ status: "invalid" });
+  }
 }

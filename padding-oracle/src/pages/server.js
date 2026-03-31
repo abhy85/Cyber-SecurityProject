@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
 
 export default function Server() {
   const [msgs, setMsgs] = useState([]);
+  const [vulnerable, setVulnerable] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -11,21 +13,73 @@ export default function Server() {
     };
 
     fetchData();
-    const i = setInterval(fetchData, 2000);
+    const i = setInterval(fetchData, 1000);
+
     return () => clearInterval(i);
   }, []);
 
-  return (
-    <div className="p-6">
-      <h1 className="text-xl mb-4">Server Dashboard</h1>
+  const toggleMode = async () => {
+    const res = await fetch("/api/toggle-mode", {
+      method: "POST",
+    });
+    const data = await res.json();
+    setVulnerable(data.vulnerable);
+  };
 
-      <div className="space-y-2">
-        {msgs.map((m) => (
-          <div key={m.id} className="bg-slate-800 p-3 rounded">
-            <div>ID: {m.id}</div>
-            <div className="break-all">{m.ciphertext}</div>
-          </div>
-        ))}
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+
+      <div className="p-6">
+        <div className="flex justify-between mb-6">
+          <h1 className="text-xl font-semibold">
+            Server Dashboard
+          </h1>
+
+          <button
+            onClick={toggleMode}
+            className={`px-4 py-2 rounded-full ${
+              vulnerable
+                ? "bg-red-500"
+                : "bg-green-500"
+            }`}
+          >
+            {vulnerable
+              ? "Vulnerable Mode"
+              : "Secure Mode"}
+          </button>
+        </div>
+
+        <div className="space-y-3 max-h-[70vh] overflow-y-auto">
+          {msgs.map((m) => (
+            <div
+              key={m.id}
+              className="bg-slate-800 p-4 rounded-xl"
+            >
+              <div className="text-xs text-slate-400">
+                {m.timestamp}
+              </div>
+
+              <div className="mt-2 text-sm">
+                <div>
+                  <strong>Ciphertext:</strong>
+                </div>
+                <div className="break-all text-indigo-300">
+                  {m.ciphertext}
+                </div>
+              </div>
+
+              <div className="mt-2 text-sm">
+                <div>
+                  <strong>Response:</strong>
+                </div>
+                <div className="break-all text-green-300">
+                  {m.responseCipher}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

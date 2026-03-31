@@ -1,25 +1,33 @@
-let messages = [];
+import { readDB, writeDB } from "../../lib/db";
+import { decrypt, encrypt } from "../../lib/crypto";
 
 export default function handler(req, res) {
   const { ciphertext } = req.body;
 
-  const id = Date.now();
+  const messages = readDB();
 
-  messages.push({
-    id,
+  let plaintext = "";
+  try {
+    plaintext = decrypt(ciphertext);
+  } catch {
+    plaintext = "[decryption error]";
+  }
+
+  const replyPlain = "Message received and securely processed.";
+
+  const replyCipher = encrypt(replyPlain);
+
+  const newEntry = {
+    id: Date.now(),
     ciphertext,
-    time: new Date().toISOString(),
+    responseCipher: replyCipher,
+    timestamp: new Date().toISOString(),
+  };
+
+  messages.push(newEntry);
+  writeDB(messages);
+
+  res.json({
+    replyCipher,
   });
-
-  const responses = [
-    "Message received and securely processed.",
-    "Your request has been validated.",
-    "Data integrity confirmed.",
-    "Command executed successfully.",
-  ];
-
-  const reply =
-    responses[Math.floor(Math.random() * responses.length)];
-
-  res.json({ reply });
 }
