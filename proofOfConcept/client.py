@@ -7,7 +7,7 @@ IV = b'InitializationVe'
 
 BLOCK_SIZE = 16
 
-message = b"This is my plainText"
+message = b"first message is this from client hello"
 
 cipher = AES.new(KEY, AES.MODE_CBC, IV)
 

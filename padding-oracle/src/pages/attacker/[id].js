@@ -53,7 +53,8 @@ export default function AttackPage() {
       (log) => {
         setCurrent({ ...log });
 
-
+        console.log(log);
+        
         if (log.progress !== undefined) {
           setProgress(log.progress);
         }

@@ -3,7 +3,6 @@ import Navbar from "../components/Navbar";
 
 export default function Server() {
   const [msgs, setMsgs] = useState([]);
-  const [vulnerable, setVulnerable] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,19 +41,6 @@ export default function Server() {
             </p>
           </div>
 
-          {/* Mode Toggle */}
-          <button
-            onClick={toggleMode}
-            className={`
-              px-4 py-2 rounded-lg text-sm font-medium border transition
-              ${vulnerable
-                ? "bg-[#fee2e2] text-[#991b1b] border-[#fecaca]"
-                : "bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0]"
-              }
-            `}
-          >
-            {vulnerable ? "Vulnerable Mode" : "Secure Mode"}
-          </button>
         </div>
 
         {/* Messages Container */}
