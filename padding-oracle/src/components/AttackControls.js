@@ -5,16 +5,16 @@ export default function AttackControls({
   setSpeed,
 }) {
   return (
-    <div className="bg-slate-800 p-4 rounded-xl">
+    <div className="bg-white border rounded-xl p-4">
       <button
         onClick={start}
         disabled={running}
-        className="w-full bg-indigo-500 py-2 rounded-lg mb-4"
+        className="w-full bg-[#111827] text-white py-2 rounded-lg mb-4 text-sm"
       >
         {running ? "Running..." : "Start Attack"}
       </button>
 
-      <div className="text-sm text-slate-400 mb-2">
+      <div className="text-xs text-[#6b7280] mb-2">
         Speed
       </div>
 
@@ -23,9 +23,7 @@ export default function AttackControls({
         min="1"
         max="50"
         value={speed}
-        onChange={(e) =>
-          setSpeed(Number(e.target.value))
-        }
+        onChange={(e) => setSpeed(Number(e.target.value))}
         className="w-full"
       />
     </div>

@@ -4,23 +4,24 @@ import Container from "../components/Container";
 
 export default function Home() {
   return (
-    <div className="bg-slate-900 min-h-screen text-white">
+    <div className="bg-[#f7f5f2] min-h-screen text-[#111827]">
       <Navbar />
 
       <Container>
         <Hero />
 
-        {/* Subtle Feature Section */}
+        {/* Feature Section */}
         <div className="grid md:grid-cols-3 gap-6 pb-24">
           {features.map((f, i) => (
             <div
               key={i}
-              className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 hover:bg-slate-800 transition"
+              className="bg-white border border-[#e5e7eb] rounded-xl p-6 shadow-sm hover:shadow-md transition"
             >
-              <h3 className="text-lg font-medium text-slate-100">
+              <h3 className="text-base font-semibold text-[#111827]">
                 {f.title}
               </h3>
-              <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+
+              <p className="mt-2 text-sm text-[#6b7280] leading-relaxed">
                 {f.desc}
               </p>
             </div>
