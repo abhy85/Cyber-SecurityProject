@@ -1,29 +1,22 @@
-// lib/crypto.js
 import CryptoJS from "crypto-js";
 
-const KEY = CryptoJS.enc.Utf8.parse("Sixteen byte key");
-const IV = CryptoJS.enc.Utf8.parse("InitializationVe");
+const KEY = CryptoJS.enc.Hex.parse("00112233445566778899aabbccddeeff");
+const IV = CryptoJS.enc.Hex.parse("0102030405060708");
 
-export function encrypt(message) {
-  const encrypted = CryptoJS.AES.encrypt(message, KEY, {
+export function encrypt(text) {
+  const encrypted = CryptoJS.AES.encrypt(text, KEY, {
     iv: IV,
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7,
   });
-
-  return encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+  return encrypted.toString();
 }
 
-export function decrypt(ciphertextBase64) {
-  const decrypted = CryptoJS.AES.decrypt(
-    { ciphertext: CryptoJS.enc.Base64.parse(ciphertextBase64) },
-    KEY,
-    {
-      iv: IV,
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7,
-    }
-  );
-
+export function decrypt(cipher) {
+  const decrypted = CryptoJS.AES.decrypt(cipher, KEY, {
+    iv: IV,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  });
   return decrypted.toString(CryptoJS.enc.Utf8);
 }

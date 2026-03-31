@@ -1,16 +1,20 @@
-// lib/attack.js
+export async function paddingOracleAttack(cipher, oracle) {
+  const bytes = atob(cipher);
+  let recovered = "";
 
-export async function oracle(ciphertext) {
-  const res = await fetch("/api/oracle", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ciphertext }),
-  });
+  for (let i = bytes.length - 1; i >= 0; i--) {
+    for (let guess = 0; guess < 256; guess++) {
+      const modified = bytes.slice(0, i) + String.fromCharCode(guess);
 
-  const data = await res.json();
-  return data.status === "valid";
-}
+      const res = await oracle(btoa(modified));
 
-export function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
+      if (res.status === "valid") {
+        const char = String.fromCharCode(guess ^ 1);
+        recovered = char + recovered;
+        break;
+      }
+    }
+  }
+
+  return recovered;
 }
