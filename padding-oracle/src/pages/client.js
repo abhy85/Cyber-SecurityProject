@@ -37,6 +37,8 @@ export default function Client() {
     fetchMessages();
   }, []);
 
+
+
   const sendMessage = async (text) => {
     if (!text) return;
 
@@ -62,13 +64,21 @@ export default function Client() {
     }, 600);
   };
 
+  const clearMessages = async () => {
+    await fetch("/api/delete-list", {
+      method: "DELETE",
+    });
+
+    setChat([]); // 🔥 clear UI instantly
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#f7f5f2]">
       <Navbar />
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-          
+
           {chat.map((msg, i) => (
             <ChatBubble key={i} text={msg.text} isUser={msg.user} />
           ))}
@@ -81,7 +91,7 @@ export default function Client() {
         </div>
       </div>
 
-      <MessageInput onSend={sendMessage} />
+      <MessageInput onSend={sendMessage} onClear={clearMessages} />
     </div>
   );
 }
