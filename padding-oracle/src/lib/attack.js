@@ -1,20 +1,66 @@
-export async function paddingOracleAttack(cipher, oracle) {
-  const bytes = atob(cipher);
-  let recovered = "";
+import { splitBlocks } from "./blocks";
 
-  for (let i = bytes.length - 1; i >= 0; i--) {
-    for (let guess = 0; guess < 256; guess++) {
-      const modified = bytes.slice(0, i) + String.fromCharCode(guess);
+export async function runPaddingAttack(
+  cipher,
+  oracle,
+  onUpdate,
+  speed = 20
+) {
+  const blocks = splitBlocks(cipher);
 
-      const res = await oracle(btoa(modified));
+  let plaintext = "";
 
-      if (res.status === "valid") {
-        const char = String.fromCharCode(guess ^ 1);
-        recovered = char + recovered;
-        break;
+  for (let b = blocks.length - 1; b > 0; b--) {
+    const curr = blocks[b];
+    const prev = blocks[b - 1];
+
+    let intermediate = new Array(16).fill(0);
+    let recovered = new Array(16).fill(0);
+
+    for (let i = 15; i >= 0; i--) {
+      const pad = 16 - i;
+
+      for (let guess = 0; guess < 256; guess++) {
+        let modified = prev.split("").map((c) => c.charCodeAt(0));
+
+        for (let j = 15; j > i; j--) {
+          modified[j] = intermediate[j] ^ pad;
+        }
+
+        modified[i] = guess;
+
+        const attackBlock = String.fromCharCode(...modified);
+        const forged =
+          btoa(attackBlock + curr);
+
+        const res = await oracle(forged);
+
+        onUpdate({
+          block: b,
+          byte: i,
+          guess,
+          status: res.status,
+        });
+
+        if (res.status === "valid") {
+          intermediate[i] = guess ^ pad;
+          recovered[i] =
+            intermediate[i] ^
+            prev.charCodeAt(i);
+
+          break;
+        }
+
+        await new Promise((r) =>
+          setTimeout(r, speed)
+        );
       }
     }
+
+    plaintext =
+      String.fromCharCode(...recovered) +
+      plaintext;
   }
 
-  return recovered;
+  return plaintext;
 }
