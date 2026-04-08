@@ -1,4 +1,4 @@
-# Padding Oracle Attack (Web Demo)
+# Padding Oracle Attack
 
 This project demonstrates the **Padding Oracle Attack** using an interactive web application built with Next.js. It complements the proof of concept by providing a visual and user-friendly interface to understand how the attack works in practice.
 
