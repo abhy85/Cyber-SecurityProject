@@ -1,62 +1,118 @@
-# Padding Oracle Attack
+# Padding Oracle Attack (Web Demo)
 
-A demonstration of the Padding Oracle Attack against an AES-CBC encrypted HTTP service. This project shows how an attacker can decrypt ciphertext without knowing the encryption key, purely by exploiting the information leaked through padding validation responses.
-
-AES-CBC (Cipher Block Chaining) mode requires that plaintext be padded to a multiple of the block size before encryption (PKCS#7 standard). If a server decrypts data and reports back whether the padding was valid or invalid, an attacker can use that single bit of information as an oracle to recover the plaintext byte by byte.
+This project demonstrates the **Padding Oracle Attack** using an interactive web application built with Next.js. It complements the proof of concept by providing a visual and user-friendly interface to understand how the attack works in practice.
 
 Demo:- [Website](https://cyber-security-project.vercel.app/)
 
 ---
 
-## Proof of Concept
+## Overview
 
-The proof of concept is located in the `proofofconcept/` folder and consists of three scripts that together demonstrate the full attack in a local environment.
+The **proof of concept** (in `proofofconcept/`) shows the attack programmatically using Python scripts. It simulates a vulnerable server and an automated attacker to recover plaintext from ciphertext.
 
-#### [Demo Video](https://www.youtube.com/watch?v=Ku4TqYv__EM)
+This **padding-oracle** module extends that idea into a web-based demonstration where users can:
 
-### Files
+* Input or generate ciphertext
+* Observe how padding validation leaks information
+* See how byte-by-byte decryption is performed
+* Understand the internal steps of the attack visually
+
+---
+
+## What is a Padding Oracle Attack
+
+A Padding Oracle Attack targets systems using **AES-CBC encryption with PKCS#7 padding**.
+
+When a server:
+
+1. Decrypts ciphertext
+2. Checks padding validity
+3. Returns different responses for valid vs invalid padding
+
+…it unintentionally leaks information.
+
+An attacker can:
+
+* Modify ciphertext blocks
+* Send them to the server
+* Use the padding response as a **1-bit oracle**
+* Recover plaintext **byte-by-byte without the key**
+
+---
+
+## Web Application (Next.js)
+
+The `padding-oracle/` directory contains a Next.js application that simulates:
+
+* AES-CBC encryption/decryption
+* A vulnerable padding oracle endpoint
+* Step-by-step attack visualization
+
+---
+
+## Features
+
+* Interactive UI for encryption and attack
+* Real-time padding validation feedback
+* Visual breakdown of:
+
+  * Ciphertext blocks
+  * Intermediate values
+  * XOR operations
+* Educational demonstration of the full attack flow
+
+---
+
+## Project Structure
 
 ```
-proofofconcept/
-    client.py      - Encrypts a plaintext message and outputs the base64 ciphertext
-    server.py      - Vulnerable Flask server that leaks padding validity
-    attacker.py    - Attack script that recovers plaintext using the oracle
+padding-oracle/
+    app/                - Next.js app directory
+    components/         - UI components for visualization
+    lib/                - Crypto logic (AES-CBC, padding, oracle)
+    public/             - Static assets
 ```
 
-### How It Works
+---
 
-**client.py**
+## Setup and Run
 
-Encrypts a hardcoded plaintext message using AES-CBC with a fixed 16-byte key and IV. Outputs a base64-encoded ciphertext that is passed to the attacker.
+### 1. Install dependencies
 
-**server.py**
+```
+cd padding-oracle
+npm install
+```
 
-Runs a local Flask server on port 5000 exposing a `/decrypt` endpoint. It accepts a base64-encoded ciphertext, decrypts it using AES-CBC, and checks the PKCS#7 padding. If padding is valid, it returns `{"status": "valid"}`; otherwise it returns `{"status": "invalid padding"}`. This difference in response is the vulnerability being exploited.
+### 2. Run development server
 
-**attacker.py**
+```
+npm run dev
+```
 
-Takes the base64 ciphertext as input and queries the server repeatedly with modified ciphertext blocks. By flipping bytes in the previous ciphertext block and observing the server response, it recovers the intermediate decryption bytes through XOR arithmetic. This process is repeated for every byte of every block until the full plaintext is recovered, without ever knowing the encryption key.
+### 3. Open in browser
 
-### Running the Proof of Concept
+```
+http://localhost:3000
+```
 
-1. Install dependencies:
-   ```
-   pip install flask pycryptodome requests
-   ```
+---
 
-2. Start the vulnerable server:
-   ```
-   python proofofconcept/server.py
-   ```
+## Build for Production
 
-3. Generate the ciphertext:
-   ```
-   python proofofconcept/client.py
-   ```
+```
+npm run build
+npm start
+```
 
-4. Run the attack (paste the ciphertext when prompted):
-   ```
-   python proofofconcept/attacker.py
-   ```
+---
 
-The attacker will recover and print the original plaintext.
+## Summary
+
+* `proofofconcept/` → Script-based demonstration (Python)
+* `padding-oracle/` → Interactive web-based visualization (Next.js)
+
+Together, they provide both:
+
+* **Practical attack execution**
+* **Conceptual understanding through visualization**
